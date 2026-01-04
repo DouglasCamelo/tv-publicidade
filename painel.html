@@ -31,7 +31,17 @@ button {
 .item {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.item img {
+  width: 80px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #000;
 }
 
 .item input {
@@ -88,12 +98,14 @@ function render() {
     div.className = "item";
 
     div.innerHTML = `
+      <img src="${img}" onerror="this.style.opacity=0.3">
       <input value="${img}">
       <button onclick="remover(${i})">❌</button>
     `;
 
     div.querySelector("input").onchange = e => {
       dados.imagens[i] = e.target.value;
+      render();
     };
 
     lista.appendChild(div);
@@ -117,8 +129,7 @@ function remover(i) {
 function salvar() {
   dados.tempo = Number(document.getElementById("tempo").value);
 
-  const conteudo =
-    JSON.stringify(dados, null, 2);
+  const conteudo = JSON.stringify(dados, null, 2);
 
   const blob = new Blob([conteudo], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -128,6 +139,7 @@ function salvar() {
   a.download = "lista.json";
   a.click();
 }
+
 carregar();
 </script>
 
