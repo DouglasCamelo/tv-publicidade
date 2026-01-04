@@ -41,39 +41,48 @@ let tempo = 8000;
 let timerSlides = null;
 
 async function carregarLista() {
-  try {
-    const res = await fetch("lista.json?cache=" + Date.now());
-    const data = await res.json();
+  const res = await fetch("lista.json?cache=" + Date.now());
+  const data = await res.json();
 
-    // Só atualiza se realmente mudou
-    if (JSON.stringify(imagens) !== JSON.stringify(data.imagens) || tempo !== data.tempo) {
-      imagens = data.imagens;
-      tempo = data.tempo;
-      index = 0;
-      iniciarSlides();
-    }
-  } catch (e) {
-    console.log("Erro ao carregar lista", e);
+  if (JSON.stringify(imagens) !== JSON.stringify(data.imagens) || tempo !== data.tempo) {
+    imagens = data.imagens;
+    tempo = data.tempo;
+    index = 0;
+    iniciarSlides();
   }
 }
 
 function mostrarSlide() {
   if (!imagens.length) return;
 
-  const slide = document.getElementById("slide");
-  slide.style.opacity = 0;
+  const container = document.getElementById("slide");
+  container.innerHTML = "";
 
-  setTimeout(() => {
-    slide.src = imagens[index];
-    slide.style.opacity = 1;
-    index = (index + 1) % imagens.length;
-  }, 400);
+  const atual = imagens[index];
+  index = (index + 1) % imagens.length;
+
+  // VIDEO
+  if (atual.toLowerCase().endsWith(".mp4")) {
+    const video = document.createElement("video");
+    video.src = atual;
+    video.autoplay = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.onended = mostrarSlide;
+    container.appendChild(video);
+  } 
+  // IMAGEM
+  else {
+    const img = document.createElement("img");
+    img.src = atual;
+    container.appendChild(img);
+    setTimeout(mostrarSlide, tempo);
+  }
 }
 
 function iniciarSlides() {
-  if (timerSlides) clearInterval(timerSlides);
+  clearTimeout(timerSlides);
   mostrarSlide();
-  timerSlides = setInterval(mostrarSlide, tempo);
 }
 
 /* RELÓGIO */
@@ -85,8 +94,9 @@ setInterval(() => {
 
 /* INICIALIZA */
 carregarLista();
-setInterval(carregarLista, 60000); // verifica atualizações a cada 1 min
+setInterval(carregarLista, 60000);
 </script>
+
 
 
 async function iniciar() {
