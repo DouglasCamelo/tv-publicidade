@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel de Publicidade</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+input, button {
+  padding: 8px;
+  font-size: 14px;
+}
+
+button {
+  cursor: pointer;
+}
+
+.lista {
+  margin-top: 20px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.item input {
+  flex: 1;
+}
+
+.item button {
+  margin-left: 5px;
+}
+
+.salvar {
+  margin-top: 20px;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📺 Painel de Publicidade</h1>
+
+<label>Tempo do slide (ms):</label><br>
+<input type="number" id="tempo"><br><br>
+
+<label>Link da imagem (Google Drive):</label><br>
+<input type="text" id="novoLink">
+<button onclick="adicionar()">Adicionar</button>
+
+<div class="lista" id="lista"></div>
+
+<button class="salvar" onclick="salvar()">💾 Salvar alterações</button>
+
+<script>
+let dados = { tempo: 8000, imagens: [] };
+
+async function carregar() {
+  const res = await fetch("lista.json?cache=" + Date.now());
+  dados = await res.json();
+
+  document.getElementById("tempo").value = dados.tempo;
+  render();
+}
+
+function render() {
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  dados.imagens.forEach((img, i) => {
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+      <input value="${img}">
+      <button onclick="remover(${i})">❌</button>
+    `;
+
+    div.querySelector("input").onchange = e => {
+      dados.imagens[i] = e.target.value;
+    };
+
+    lista.appendChild(div);
+  });
+}
+
+function adicionar() {
+  const link = document.getElementById("novoLink").value;
+  if (!link) return;
+
+  dados.imagens.push(link);
+  document.getElementById("novoLink").value = "";
+  render();
+}
+
+function remover(i) {
+  dados.imagens.splice(i, 1);
+  render();
+}
+
+function salvar() {
+  dados.tempo = Number(document.getElementById("tempo").value);
+
+  const conteudo =
+    JSON.stringify(dados, null, 2);
+
+  const blob = new Blob([conteudo], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "lista.json";
+  a.click();
+}
+carregar();
+</script>
+
+</body>
+</html>
