@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Publicidade TV</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: black;
+  overflow: hidden;
+}
+
+#slide {
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+}
+
+#relogio {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: white;
+  font-size: 40px;
+  font-family: Arial, sans-serif;
+}
+</style>
+</head>
+
+<body>
+<img id="slide">
+<div id="relogio"></div>
+
+<script>
+const DRIVE_FOLDER_ID = "1k1xVJqTT2x0YeiT6UEa84CQcOv3FOHjz";
+let imagens = [];
+let index = 0;
+let tempo = 8000;
+let modo = "horizontal";
+
+async function carregarConfig() {
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+name='config.json'&alt=media`);
+  const config = await res.json();
+  tempo = config.tempo;
+  modo = config.modo;
+}
+
+async function carregarImagens() {
+  const pasta = modo === "vertical" ? "vertical" : "horizontal";
+  const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+name='${pasta}'`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  imagens = data.files.map(f => `https://drive.google.com/uc?id=${f.id}`);
+}
+
+function mostrarSlide() {
+  document.getElementById("slide").src = imagens[index];
+  index = (index + 1) % imagens.length;
+}
+
+setInterval(() => {
+  if (imagens.length) mostrarSlide();
+}, tempo);
+
+setInterval(() => {
+  const d = new Date();
+  document.getElementById("relogio").innerText =
+    d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}, 1000);
+
+async function iniciar() {
+  await carregarConfig();
+  await carregarImagens();
+  mostrarSlide();
+}
+
+iniciar();
+</script>
+</body>
+</html>
