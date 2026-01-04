@@ -15,7 +15,8 @@ html, body {
 #slide {
   width: 100vw;
   height: 100vh;
-  object-fit: contain;
+  object-fit: contain; /* HORIZONTAL */
+  transition: opacity 0.8s ease-in-out;
 }
 
 #relogio {
@@ -23,7 +24,7 @@ html, body {
   top: 20px;
   right: 30px;
   color: white;
-  font-size: 40px;
+  font-size: 42px;
   font-family: Arial, sans-serif;
 }
 </style>
@@ -34,47 +35,51 @@ html, body {
 <div id="relogio"></div>
 
 <script>
-const DRIVE_FOLDER_ID = "1k1xVJqTT2x0YeiT6UEa84CQcOv3FOHjz";
+/* ================= CONFIGURAÇÃO ================= */
+const DRIVE_FOLDER =
+  "https://drive.google.com/embeddedfolderview?id=1k1xVJqTT2x0YeiT6UEa84CQcOv3FOHjz#grid";
+
+const TEMPO_SLIDE = 8000; // 8 segundos
+/* =============================================== */
+
 let imagens = [];
 let index = 0;
-let tempo = 8000;
-let modo = "horizontal";
 
-async function carregarConfig() {
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+name='config.json'&alt=media`);
-  const config = await res.json();
-  tempo = config.tempo;
-  modo = config.modo;
-}
-
+/* BUSCA IMAGENS DO DRIVE */
 async function carregarImagens() {
-  const pasta = modo === "vertical" ? "vertical" : "horizontal";
-  const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+name='${pasta}'`;
-  const res = await fetch(url);
-  const data = await res.json();
+  const res = await fetch(DRIVE_FOLDER);
+  const html = await res.text();
 
-  imagens = data.files.map(f => `https://drive.google.com/uc?id=${f.id}`);
+  const regex = /https:\/\/lh3\.googleusercontent\.com\/[^\"]+/g;
+  imagens = html.match(regex) || [];
 }
 
+/* EXIBE SLIDES */
 function mostrarSlide() {
-  document.getElementById("slide").src = imagens[index];
-  index = (index + 1) % imagens.length;
+  if (!imagens.length) return;
+
+  const slide = document.getElementById("slide");
+  slide.style.opacity = 0;
+
+  setTimeout(() => {
+    slide.src = imagens[index];
+    slide.style.opacity = 1;
+    index = (index + 1) % imagens.length;
+  }, 400);
 }
 
-setInterval(() => {
-  if (imagens.length) mostrarSlide();
-}, tempo);
-
+/* RELÓGIO */
 setInterval(() => {
   const d = new Date();
   document.getElementById("relogio").innerText =
-    d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }, 1000);
 
+/* INICIALIZA */
 async function iniciar() {
-  await carregarConfig();
   await carregarImagens();
   mostrarSlide();
+  setInterval(mostrarSlide, TEMPO_SLIDE);
 }
 
 iniciar();
