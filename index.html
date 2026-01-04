@@ -41,48 +41,39 @@ let tempo = 8000;
 let timerSlides = null;
 
 async function carregarLista() {
-  const res = await fetch("lista.json?cache=" + Date.now());
-  const data = await res.json();
+  try {
+    const res = await fetch("lista.json?cache=" + Date.now());
+    const data = await res.json();
 
-  if (JSON.stringify(imagens) !== JSON.stringify(data.imagens) || tempo !== data.tempo) {
-    imagens = data.imagens;
-    tempo = data.tempo;
-    index = 0;
-    iniciarSlides();
+    // Só atualiza se realmente mudou
+    if (JSON.stringify(imagens) !== JSON.stringify(data.imagens) || tempo !== data.tempo) {
+      imagens = data.imagens;
+      tempo = data.tempo;
+      index = 0;
+      iniciarSlides();
+    }
+  } catch (e) {
+    console.log("Erro ao carregar lista", e);
   }
 }
 
 function mostrarSlide() {
   if (!imagens.length) return;
 
-  const container = document.getElementById("slide");
-  container.innerHTML = "";
+  const slide = document.getElementById("slide");
+  slide.style.opacity = 0;
 
-  const atual = imagens[index];
-  index = (index + 1) % imagens.length;
-
-  // VIDEO
-  if (atual.toLowerCase().endsWith(".mp4")) {
-    const video = document.createElement("video");
-    video.src = atual;
-    video.autoplay = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.onended = mostrarSlide;
-    container.appendChild(video);
-  } 
-  // IMAGEM
-  else {
-    const img = document.createElement("img");
-    img.src = atual;
-    container.appendChild(img);
-    setTimeout(mostrarSlide, tempo);
-  }
+  setTimeout(() => {
+    slide.src = imagens[index];
+    slide.style.opacity = 1;
+    index = (index + 1) % imagens.length;
+  }, 400);
 }
 
 function iniciarSlides() {
-  clearTimeout(timerSlides);
+  if (timerSlides) clearInterval(timerSlides);
   mostrarSlide();
+  timerSlides = setInterval(mostrarSlide, tempo);
 }
 
 /* RELÓGIO */
@@ -94,9 +85,8 @@ setInterval(() => {
 
 /* INICIALIZA */
 carregarLista();
-setInterval(carregarLista, 60000);
+setInterval(carregarLista, 60000); // verifica atualizações a cada 1 min
 </script>
-
 
 
 async function iniciar() {
