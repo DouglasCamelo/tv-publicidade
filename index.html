@@ -35,12 +35,12 @@ html, body {
 <div id="relogio"></div>
 
 <script>
-/* ================= CONFIGURAÇÃO ================= */
+/* ========== CONFIGURAÇÃO ========== */
 const DRIVE_FOLDER =
-  "https://drive.google.com/embeddedfolderview?id=1k1xVJqTT2x0YeiT6UEa84CQcOv3FOHjz#grid";
+  "https://drive.google.com/embeddedfolderview?id=1Cj36xc7R4CW7sWhVDWI3L4UfGqoa959C#grid";
 
 const TEMPO_SLIDE = 8000; // 8 segundos
-/* =============================================== */
+/* ================================ */
 
 let imagens = [];
 let index = 0;
@@ -51,10 +51,10 @@ async function carregarImagens() {
   const html = await res.text();
 
   const regex = /https:\/\/lh3\.googleusercontent\.com\/[^\"]+/g;
-  imagens = html.match(regex) || [];
+  imagens = [...new Set(html.match(regex))];
 }
 
-/* EXIBE SLIDES */
+/* MOSTRA SLIDES */
 function mostrarSlide() {
   if (!imagens.length) return;
 
@@ -75,7 +75,7 @@ setInterval(() => {
     d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }, 1000);
 
-/* INICIALIZA */
+/* INICIAR */
 async function iniciar() {
   await carregarImagens();
   mostrarSlide();
