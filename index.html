@@ -38,13 +38,23 @@ html, body {
 let imagens = [];
 let index = 0;
 let tempo = 8000;
+let timerSlides = null;
 
 async function carregarLista() {
-  const res = await fetch("lista.json?cache=" + Date.now());
-  const data = await res.json();
+  try {
+    const res = await fetch("lista.json?cache=" + Date.now());
+    const data = await res.json();
 
-  imagens = data.imagens;
-  tempo = data.tempo;
+    // Só atualiza se realmente mudou
+    if (JSON.stringify(imagens) !== JSON.stringify(data.imagens) || tempo !== data.tempo) {
+      imagens = data.imagens;
+      tempo = data.tempo;
+      index = 0;
+      iniciarSlides();
+    }
+  } catch (e) {
+    console.log("Erro ao carregar lista", e);
+  }
 }
 
 function mostrarSlide() {
@@ -60,12 +70,24 @@ function mostrarSlide() {
   }, 400);
 }
 
+function iniciarSlides() {
+  if (timerSlides) clearInterval(timerSlides);
+  mostrarSlide();
+  timerSlides = setInterval(mostrarSlide, tempo);
+}
+
 /* RELÓGIO */
 setInterval(() => {
   const d = new Date();
   document.getElementById("relogio").innerText =
     d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }, 1000);
+
+/* INICIALIZA */
+carregarLista();
+setInterval(carregarLista, 60000); // verifica atualizações a cada 1 min
+</script>
+
 
 async function iniciar() {
   await carregarLista();
